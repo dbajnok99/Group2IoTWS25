@@ -5,8 +5,8 @@
 #include <DHT.h>
 
 // --- USER CONFIGURATION ---
-const char* ssid = "Bajnok 2.4";
-const char* password = "#21Szuret21"; 
+const char* ssid = "WIFI";
+const char* password = "PASSWORD"; 
 const char* pi_url = "http://192.168.0.150:8000/ingest"; 
 
 // --- HARDWARE CONFIGURATION ---
