@@ -119,53 +119,66 @@ def main():
 
     messages = [
         {"role": "system", "content": "You are a helpful assistant. Always use tools!"},
-        {"role": "user", "content": "Calculate 400 + 400 and give me the answer"},
     ]
 
-    # 3) First completion (model may ask for tool)
-    resp = client.chat.completions.create(
-        model=MODEL,
-        messages=messages,
-        tools=openai_tools,
-        tool_choice="auto",
-        temperature=0.2,
-    )
+    print("Agent Client is ready. Type 'exit' or 'quit' to end the conversation.")
 
-    msg = resp.choices[0].message
+    while True:
+        user_input = input("You: ")
+        if user_input.lower() in ["exit", "quit"]:
+            break
 
-    # If the model requested a tool call:
-    if getattr(msg, "tool_calls", None):
-        for tc in msg.tool_calls:
-            fn = tc.function.name
+        messages.append({"role": "user", "content": user_input})
 
-        args = json.loads(tc.function.arguments or "{}")
-
-        tool_output = mcp_call_tool(fn, args)
-
-        # Append tool result in OpenAI format
-        messages.append(msg)  # assistant tool call message
-
-        messages.append(
-            {
-                "role": "tool",
-                "tool_call_id": tc.id,
-                "content": tool_output,
-            }
-        )
-
-        # 4) Second completion with tool outputs
-        resp2 = client.chat.completions.create(
+        # 3) First completion (model may ask for tool)
+        resp = client.chat.completions.create(
             model=MODEL,
             messages=messages,
+            tools=openai_tools,
+            tool_choice="auto",
             temperature=0.2,
         )
 
-        print(resp2.choices[0].message.content)
+        msg = resp.choices[0].message
 
-    else:
-        # Model answered directly
-        print("Model answered without tool call:")
-        print(msg.content)
+        # If the model requested a tool call:
+        if getattr(msg, "tool_calls", None):
+            print("Agent: Using tool...")
+            for tc in msg.tool_calls:
+                fn = tc.function.name
+
+            args = json.loads(tc.function.arguments or "{}")
+
+            tool_output = mcp_call_tool(fn, args)
+
+            # Append tool result in OpenAI format
+            messages.append(msg)  # assistant tool call message
+
+            messages.append(
+                {
+                    "role": "tool",
+                    "tool_call_id": tc.id,
+                    "content": tool_output,
+                }
+            )
+
+            # 4) Second completion with tool outputs
+            resp2 = client.chat.completions.create(
+                model=MODEL,
+                messages=messages,
+                temperature=0.2,
+            )
+
+            agent_response = resp2.choices[0].message.content
+            print(f"Agent: {agent_response}")
+            messages.append({"role": "assistant", "content": agent_response})
+
+        else:
+            # Model answered directly
+            print("Agent: Answering directly (no tool used)...")
+            agent_response = msg.content
+            print(f"Agent: {agent_response}")
+            messages.append({"role": "assistant", "content": agent_response})
 
 
 if __name__ == "__main__":
