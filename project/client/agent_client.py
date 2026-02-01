@@ -103,12 +103,66 @@ def mcp_call_tool(name: str, args: dict) -> str:
     return "\n".join(texts).strip()
 
 
+def process_message(user_input, client, openai_tools, available_tool_names, system_message):
+    messages = [
+        system_message,
+        {"role": "user", "content": user_input}
+    ]
+
+    while True:
+        try:
+            resp = client.chat.completions.create(
+                model=MODEL,
+                messages=messages,
+                tools=openai_tools,
+                tool_choice="auto",
+                temperature=0.2,
+            )
+        except httpx.ConnectError as e:
+            print(f"Agent: I couldn't connect to the model at {BASE_URL}. Please make sure the server is running.")
+            return
+
+        msg = resp.choices[0].message
+        messages.append(msg)
+
+        if getattr(msg, "tool_calls", None):
+            print("Agent: Using tool(s)...")
+            all_tools_available = True
+            for tc in msg.tool_calls:
+                fn = tc.function.name
+                if fn not in available_tool_names:
+                    print(f"Agent: I don't have the capability to use the '{fn}' tool.")
+                    all_tools_available = False
+                    break
+            
+            if not all_tools_available:
+                break
+
+            for tc in msg.tool_calls:
+                fn = tc.function.name
+                args = json.loads(tc.function.arguments or "{}")
+
+                print(f"  - Calling tool: {fn} with arguments: {args}")
+                tool_output = mcp_call_tool(fn, args)
+
+                messages.append(
+                    {
+                        "role": "tool",
+                        "tool_call_id": tc.id,
+                        "content": tool_output,
+                    }
+                )
+        else:
+            print(f"Agent: {msg.content}")
+            break
+
+
 def main():
     # 1) MCP handshake + tools discovery
     mcp_initialize()
 
     mcp_tools = mcp_list_tools()
-
+    available_tool_names = {tool['name'] for tool in mcp_tools}
     openai_tools = mcp_tools_to_openai_tools(mcp_tools)
 
     # 2) Connect to local LLM via OpenAI-compatible API
@@ -117,9 +171,7 @@ def main():
         api_key="not-needed",  # LM Studio spesso non richiede key; Ollama accetta qualsiasi stringa - LM Studio often doesn't require a key; Ollama accepts any string
     )
 
-    messages = [
-        {"role": "system", "content": "You are a helpful assistant. Use tools when necessary."},
-    ]
+    system_message = {"role": "system", "content": "You are a helpful assistant. Always use tools!"}
 
     print("Agent Client is ready. Type 'exit' or 'quit' to end the conversation.")
 
@@ -128,56 +180,8 @@ def main():
         if user_input.lower() in ["exit", "quit"]:
             break
 
-        messages.append({"role": "user", "content": user_input})
+        process_message(user_input, client, openai_tools, available_tool_names, system_message)
 
-        # 3) First completion (model may ask for tool)
-        resp = client.chat.completions.create(
-            model=MODEL,
-            messages=messages,
-            tools=openai_tools,
-            tool_choice="auto",
-            temperature=0.2,
-        )
-
-        msg = resp.choices[0].message
-
-        # If the model requested a tool call:
-        if getattr(msg, "tool_calls", None):
-            tc = msg.tool_calls[0]
-            fn = tc.function.name
-            print(f"Agent: Using tool {fn}")
-
-            args = json.loads(tc.function.arguments or "{}")
-
-            tool_output = mcp_call_tool(fn, args)
-
-            # Append tool result in OpenAI format
-            messages.append(msg)  # assistant tool call message
-
-            messages.append(
-                {
-                    "role": "tool",
-                    "tool_call_id": tc.id,
-                    "content": tool_output,
-                }
-            )
-
-            # 4) Second completion with tool outputs
-            resp2 = client.chat.completions.create(
-                model=MODEL,
-                messages=messages,
-                temperature=0.2,
-            )
-
-            agent_response = resp2.choices[0].message.content
-            print(f"Agent: {agent_response}")
-            messages.append({"role": "assistant", "content": agent_response})
-
-        else:
-            # Model answered directly
-            agent_response = msg.content
-            print(f"Agent: {agent_response}")
-            messages.append({"role": "assistant", "content": agent_response})
 
 if __name__ == "__main__":
 
