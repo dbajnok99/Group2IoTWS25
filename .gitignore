@@ -1,2 +1,27 @@
 .pio
 .vscode
+
+# Python
+__pycache__/
+*.venv/
+.venv/
+venv/
+env/
+
+# Build artifacts
+build/
+*.o
+*.a
+*.so
+*.elf
+*.hex
+*.bin
+
+# OS-specific
+.DS_Store
+Thumbs.db
+
+# Log and temp files
+*.log
+*.tmp
+*.temp
