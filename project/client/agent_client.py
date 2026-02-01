@@ -118,7 +118,7 @@ def main():
     )
 
     messages = [
-        {"role": "system", "content": "You are a helpful assistant. Always use tools!"},
+        {"role": "system", "content": "You are a helpful assistant. Use tools when necessary."},
     ]
 
     print("Agent Client is ready. Type 'exit' or 'quit' to end the conversation.")
@@ -143,9 +143,9 @@ def main():
 
         # If the model requested a tool call:
         if getattr(msg, "tool_calls", None):
-            print("Agent: Using tool...")
-            for tc in msg.tool_calls:
-                fn = tc.function.name
+            tc = msg.tool_calls[0]
+            fn = tc.function.name
+            print(f"Agent: Using tool {fn}")
 
             args = json.loads(tc.function.arguments or "{}")
 
@@ -175,11 +175,9 @@ def main():
 
         else:
             # Model answered directly
-            print("Agent: Answering directly (no tool used)...")
             agent_response = msg.content
             print(f"Agent: {agent_response}")
             messages.append({"role": "assistant", "content": agent_response})
-
 
 if __name__ == "__main__":
 
