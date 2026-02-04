@@ -7,6 +7,10 @@ from datetime import datetime, timedelta
 from flask import Flask, request
 from bleak import BleakClient, BleakScanner
 
+
+# Get the directory where ingestor.py actually lives
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+CONF_PATH = os.path.join(BASE_DIR, "esp32.conf")
 # --- CONFIGURATION ---
 THINGY_NAME = "Thingy_Sensor"  # Must match your Firmware Name
 DB_NAME = "sensor_data.db"
@@ -51,18 +55,15 @@ def save_reading(device, sensor, value):
 # This is NOT called automatically. It is here only because you said
 # the LED is actuated over HTTP, so you have the capability if needed.
 def set_esp32_led(turn_on):
-    # 1. If memory is empty, try to get it from the file immediately
+    # Check the absolute path instead of a relative string
     if not SYSTEM_STATE["esp32_ip"]:
-        try:
-            if os.path.exists("esp32.conf"):
-                with open("esp32.conf", "r") as f:
-                    SYSTEM_STATE["esp32_ip"] = f.read().strip()
-        except Exception:
-            pass
-
-    # 2. Now check if we finally have an IP
+        if os.path.exists(CONF_PATH):
+            with open(CONF_PATH, "r") as f:
+                SYSTEM_STATE["esp32_ip"] = f.read().strip()
+                print(f"✅ Found and loaded IP from: {CONF_PATH}")
+    
     if not SYSTEM_STATE["esp32_ip"]:
-        print("ESP32 IP unknown yet (even in file).")
+        print(f"❌ Still no IP. Looked in: {CONF_PATH}")
         return
 
     val = "1" if turn_on else "0"
