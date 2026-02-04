@@ -14,7 +14,7 @@ import os
 
 # Add the parent directory (project/raspi/) to the python path
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-from ingestor import SYSTEM_STATE, set_esp32_led
+from ingestor import set_esp32_led
 
 # --- MCP server ---
 mcp_server = Server("starlette-mcp")
@@ -183,13 +183,4 @@ app = Starlette(
 )
 
 if __name__ == "__main__":
-    if os.path.exists("../esp32.conf"):
-        try:
-            with open("../esp32.conf", "r") as f:
-                saved_ip = f.read().strip()
-                if saved_ip:
-                    SYSTEM_STATE["esp32_ip"] = saved_ip
-                    print(f"✅ Restored ESP32 IP from config: {saved_ip}")
-        except Exception as e:
-            print(f"Could not read config file: {e}")
     uvicorn.run("app:app", host="0.0.0.0", port=4200, reload=True)

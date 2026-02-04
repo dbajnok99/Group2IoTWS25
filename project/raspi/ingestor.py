@@ -51,8 +51,18 @@ def save_reading(device, sensor, value):
 # This is NOT called automatically. It is here only because you said
 # the LED is actuated over HTTP, so you have the capability if needed.
 def set_esp32_led(turn_on):
+    # 1. If memory is empty, try to get it from the file immediately
     if not SYSTEM_STATE["esp32_ip"]:
-        print("ESP32 IP unknown yet.")
+        try:
+            if os.path.exists("esp32.conf"):
+                with open("esp32.conf", "r") as f:
+                    SYSTEM_STATE["esp32_ip"] = f.read().strip()
+        except Exception:
+            pass
+
+    # 2. Now check if we finally have an IP
+    if not SYSTEM_STATE["esp32_ip"]:
+        print("ESP32 IP unknown yet (even in file).")
         return
 
     val = "1" if turn_on else "0"
@@ -60,10 +70,9 @@ def set_esp32_led(turn_on):
     
     try:
         requests.get(url, timeout=1)
-        print(f"👉 Manual Command Sent: LED {'ON' if turn_on else 'OFF'}")
+        print(f"👉 Command Sent to {SYSTEM_STATE['esp32_ip']}: LED {'ON' if turn_on else 'OFF'}")
     except Exception as e:
         print(f"HTTP Error: {e}")
-
 # --- HTTP SERVER (Receives ESP32 Data) ---
 app = Flask(__name__)
 
