@@ -10,7 +10,7 @@ from starlette.applications import Starlette
 from starlette.routing import Mount
 from starlette.types import Scope, Receive, Send
 
-from ingestor import set_esp32_led
+from .. import ingestor
 
 # --- MCP server ---
 mcp_server = Server("starlette-mcp")
@@ -104,7 +104,7 @@ async def call_tool(name: str, arguments: dict):
 
     if name == "actuators.set":
         if arguments["device_id"] == "ESP32" and arguments["actuator"] == "LED":
-            set_esp32_led(arguments["value"])
+            ingestor.set_esp32_led(arguments["value"])
             return [types.TextContent(type="text", text="OK")]
 
     if name == "system.status":
