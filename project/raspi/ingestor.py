@@ -51,9 +51,9 @@ def save_reading(device, sensor, value):
 # This is NOT called automatically. It is here only because you said
 # the LED is actuated over HTTP, so you have the capability if needed.
 def set_esp32_led(turn_on):
-    if os.path.exists("esp32.conf"):
+    if os.path.exists("../esp32.conf"):
         try:
-            with open("esp32.conf", "r") as f:
+            with open("../esp32.conf", "r") as f:
                 saved_ip = f.read().strip()
                 if saved_ip:
                     SYSTEM_STATE["esp32_ip"] = saved_ip
