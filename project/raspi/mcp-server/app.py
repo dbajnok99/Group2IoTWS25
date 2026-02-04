@@ -115,7 +115,7 @@ async def call_tool(name: str, arguments: dict):
         now = datetime.now()
         status = {
             "database_up:": False,
-            "thingy32_up:": False,
+            "thingy53_up:": False,
             "esp32_up:": False,
             "details": {},
             "timestamp": now.isoformat(),
@@ -130,7 +130,7 @@ async def call_tool(name: str, arguments: dict):
             last_thingy = cur.fetchone()[0]
             if last_thingy:
                 delta = now - datetime.fromisoformat(last_thingy)
-                status["thingy32_up"] = delta.total_seconds() < 10
+                status["thingy53_up"] = delta.total_seconds() < 10
 
             cur.execute("SELECT MAX(timestamp) FROM readings WHERE device='ESP32'")
             last_esp = cur.fetchone()[0]
@@ -143,7 +143,7 @@ async def call_tool(name: str, arguments: dict):
 
         status["system_up"] = (
             status["database_up"]
-            and status["thingy32_up"]
+            and status["thingy53_up"]
             and status["esp32_up"]
         )
 

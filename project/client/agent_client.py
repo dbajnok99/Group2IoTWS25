@@ -164,11 +164,25 @@ def main():
         api_key="not-needed",
     )
 
-    system_message = {"role": "system", "content": """You are a helpful assistant. 
-    AVAILABLE DEVICES:
-    - ESP32: Has an actuator 'LED' (boolean) and a sensor 'dht11_temp'.
-    - Thingy: Has sensors 'Temperature' and 'Humidity'.
-    You MUST use MCP tools. Never invent values."""}
+    system_message = {
+    "role": "system", 
+    "content": """You are a precise IoT Control Assistant. 
+    
+    HARDWARE INVENTORY:
+    1. ESP32: 
+       - Sensor: 'dht11_temp' (Temperature)
+       - Actuator: 'LED' (Values: True for ON, False for OFF)
+    2. Thingy:53:
+       - Sensors: 'Temperature', 'Humidity'
+
+    STRICT OPERATING RULES:
+    - NEVER assume or invent a sensor value. If a tool returns 'None' or an error, state that the data is unavailable.
+    - ALWAYS call 'sensors.latest' before answering questions about current conditions.
+    - ALWAYS call 'actuators.set' to change device states; do not just tell the user how to do it.
+    - When using 'actuators.set' for the ESP32, you MUST use device_id='ESP32' and actuator='LED'.
+    - If you are unsure of the available sensors, call 'sensors.list' first.
+    - After every tool call, explain exactly which tool you used and what the result was."""
+    }
     print("Agent Client is ready. Type 'exit' or 'quit' to end the conversation.")
 
     while True:

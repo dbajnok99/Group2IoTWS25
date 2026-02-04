@@ -60,10 +60,10 @@ def set_esp32_led(turn_on):
         if os.path.exists(CONF_PATH):
             with open(CONF_PATH, "r") as f:
                 SYSTEM_STATE["esp32_ip"] = f.read().strip()
-                print(f"✅ Found and loaded IP from: {CONF_PATH}")
+                print(f"Found and loaded IP from: {CONF_PATH}")
     
     if not SYSTEM_STATE["esp32_ip"]:
-        print(f"❌ Still no IP. Looked in: {CONF_PATH}")
+        print(f"Still no IP. Looked in: {CONF_PATH}")
         return
 
     val = "1" if turn_on else "0"
@@ -71,7 +71,7 @@ def set_esp32_led(turn_on):
     
     try:
         requests.get(url, timeout=1)
-        print(f"👉 Command Sent to {SYSTEM_STATE['esp32_ip']}: LED {'ON' if turn_on else 'OFF'}")
+        print(f"Command Sent to {SYSTEM_STATE['esp32_ip']}: LED {'ON' if turn_on else 'OFF'}")
     except Exception as e:
         print(f"HTTP Error: {e}")
 # --- HTTP SERVER (Receives ESP32 Data) ---
@@ -121,11 +121,11 @@ async def run_ble():
             val = int.from_bytes(data, 'little', signed=True) / 100.0
             
             if sender.uuid == UUID_TEMP:
-                print(f"⚡ [Thingy] Temp: {val:.2f}°C")
+                print(f"[Thingy] Temp: {val:.2f}°C")
                 save_reading("Thingy", "Temperature", val)
                 
             elif sender.uuid == UUID_HUMID:
-                print(f"💧 [Thingy] Humid: {val:.2f}%")
+                print(f"[Thingy] Humid: {val:.2f}%")
                 save_reading("Thingy", "Humidity", val)
 
         await client.start_notify(UUID_TEMP, callback)
