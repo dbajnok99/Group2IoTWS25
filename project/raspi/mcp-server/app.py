@@ -9,8 +9,12 @@ from mcp.server.streamable_http_manager import StreamableHTTPSessionManager
 from starlette.applications import Starlette
 from starlette.routing import Mount
 from starlette.types import Scope, Receive, Send
+import sys
+import os
 
-from .. import ingestor
+# Add the parent directory (project/raspi/) to the python path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from ingestor import set_esp32_led
 
 # --- MCP server ---
 mcp_server = Server("starlette-mcp")
@@ -104,7 +108,7 @@ async def call_tool(name: str, arguments: dict):
 
     if name == "actuators.set":
         if arguments["device_id"] == "ESP32" and arguments["actuator"] == "LED":
-            ingestor.set_esp32_led(arguments["value"])
+            set_esp32_led(arguments["value"])
             return [types.TextContent(type="text", text="OK")]
 
     if name == "system.status":
