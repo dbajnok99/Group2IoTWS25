@@ -4,7 +4,7 @@ from openai import OpenAI
 
 
 # il tuo Starlette MCP - your starlette MCP
-MCP_URL = "http://127.0.0.1:4200/mcp/"
+MCP_URL = "http://192.111.111.19:4200/mcp/"
 
 # SCEGLI UNO: - Choose one:
 # OLLAMA_BASE_URL = "http://localhost:11434/v1" # Ollama OpenAI-compat
@@ -171,7 +171,7 @@ def main():
         api_key="not-needed",  # LM Studio spesso non richiede key; Ollama accetta qualsiasi stringa - LM Studio often doesn't require a key; Ollama accepts any string
     )
 
-    system_message = {"role": "system", "content": "You are a helpful assistant. Always use tools!"}
+    system_message = {"role": "system", "content": "You are a helpful assistant. You MUST use MCP tools to access sensor data or control actuators! Never invent values. After answering explain which tools were used."}
 
     print("Agent Client is ready. Type 'exit' or 'quit' to end the conversation.")
 
