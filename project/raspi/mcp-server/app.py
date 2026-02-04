@@ -56,12 +56,12 @@ async def list_tools() -> list[types.Tool]:
         ),
         types.Tool(
             name="actuators.set",
-            description="Set an actuator value",
+            description="Set an actuator value. Use value=true for ON and value=false for OFF",
             inputSchema={
                 "type": "object",
                 "properties": {
-                    "device_id": {"type": "string"},
-                    "actuator": {"type": "string"},
+                    "device_id": {"type": "string", "enum": ["ESP32"]},
+                    "actuator": {"type": "string", "enum": ["LED"]},
                     "value": {"type": "boolean"},
                 },
                 "required": ["device_id", "actuator", "value"],

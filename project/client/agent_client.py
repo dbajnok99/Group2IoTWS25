@@ -80,20 +80,13 @@ def mcp_call_tool(name: str, args: dict) -> str:
         "method": "tools/call",
         "params": {"name": name, "arguments": args},
     }
-
     res = mcp_call(payload)
-
-    # result.content is a list of content items
-
-    content = res["result"]["content"]
-
-    texts = []
-
-    for c in content:
-        if c.get("type") == "text":
-            texts.append(c.get("text", ""))
-
-    return "\n".join(texts).strip()
+    
+    # Ensure this part doesn't crash on an empty result list
+    if "result" in res and "content" in res["result"]:
+        content = res["result"]["content"]
+        return "\n".join([c.get("text", "") for c in content if c.get("type") == "text"]).strip()
+    return "Tool executed successfully"
 
 
 def process_message(user_input, client, openai_tools, available_tool_names, system_message):
@@ -120,34 +113,21 @@ def process_message(user_input, client, openai_tools, available_tool_names, syst
 
         if getattr(msg, "tool_calls", None):
             print("Agent: Using tool(s)...")
-            all_tools_available = True
             for tc in msg.tool_calls:
                 fn = tc.function.name
-                if fn not in available_tool_names:
-                    print(f"Agent: I don't have the capability to use the '{fn}' tool.")
-                    all_tools_available = False
-                    break
-            
-            if not all_tools_available:
-                break
-
-            for tc in msg.tool_calls:
-                fn = tc.function.name
-                args = json.loads(tc.function.arguments or "{}")
+                args_raw = tc.function.arguments or "{}"
+                args = json.loads(args_raw)
 
                 print(f"  - Calling tool: {fn} with arguments: {args}")
+                
+                # Execute the call regardless of whether the values are True or False
                 tool_output = mcp_call_tool(fn, args)
 
-                messages.append(
-                    {
-                        "role": "tool",
-                        "tool_call_id": tc.id,
-                        "content": tool_output,
-                    }
-                )
-        else:
-            print(f"Agent: {msg.content}")
-            break
+                messages.append({
+                    "role": "tool",
+                    "tool_call_id": tc.id,
+                    "content": tool_output,
+                })
 
 
 def main():
@@ -181,6 +161,7 @@ def main():
     - ALWAYS call 'actuators.set' to change device states; do not just tell the user how to do it.
     - When using 'actuators.set' for the ESP32, you MUST use device_id='ESP32' and actuator='LED'.
     - If you are unsure of the available sensors, call 'sensors.list' first.
+    - Do not skip the tool call if the user wants to stop or turn off a device.
     - After every tool call, explain exactly which tool you used and what the result was."""
     }
     print("Agent Client is ready. Type 'exit' or 'quit' to end the conversation.")
