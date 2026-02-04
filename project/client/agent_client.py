@@ -3,16 +3,10 @@ import httpx
 from openai import OpenAI
 
 
-# il tuo Starlette MCP - your starlette MCP
-MCP_URL = "http://192.111.111.19:4200/mcp/"
-
-# SCEGLI UNO: - Choose one:
-# OLLAMA_BASE_URL = "http://localhost:11434/v1" # Ollama OpenAI-compat
-# LMSTUDIO_BASE_URL = "http://localhost:1234/v1" # LM Studio OpenAI-compat
-
-# <-- cambia a LM Studio se vuoi - check out LM Studio if you want
+# starlette MCP
+MCP_URL = "http://192.168.0.150:4200/mcp/"
 BASE_URL = "http://localhost:11434/v1"
-MODEL = "llama3.1"  # <-- metti il model id che hai caricato - enter the model you chose
+MODEL = "llama3.1"
 
 
 def mcp_call(payload: dict) -> dict:
@@ -89,7 +83,6 @@ def mcp_call_tool(name: str, args: dict) -> str:
 
     res = mcp_call(payload)
 
-    # result.content è una lista di content items (es. TextContent)
     # result.content is a list of content items
 
     content = res["result"]["content"]
@@ -168,11 +161,14 @@ def main():
     # 2) Connect to local LLM via OpenAI-compatible API
     client = OpenAI(
         base_url=BASE_URL,
-        api_key="not-needed",  # LM Studio spesso non richiede key; Ollama accetta qualsiasi stringa - LM Studio often doesn't require a key; Ollama accepts any string
+        api_key="not-needed",
     )
 
-    system_message = {"role": "system", "content": "You are a helpful assistant. You MUST use MCP tools to access sensor data or control actuators! Never invent values. After answering explain which tools were used."}
-
+    system_message = {"role": "system", "content": """You are a helpful assistant. 
+    AVAILABLE DEVICES:
+    - ESP32: Has an actuator 'LED' (boolean) and a sensor 'dht11_temp'.
+    - Thingy: Has sensors 'Temperature' and 'Humidity'.
+    You MUST use MCP tools. Never invent values."""}
     print("Agent Client is ready. Type 'exit' or 'quit' to end the conversation.")
 
     while True:

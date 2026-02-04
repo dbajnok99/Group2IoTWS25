@@ -1,4 +1,5 @@
 import asyncio
+import os
 import sqlite3
 import threading
 import requests
@@ -127,7 +128,15 @@ async def run_ble():
 # --- MAIN ---
 if __name__ == "__main__":
     init_db()
-    
+    if os.path.exists("esp32.conf"):
+        try:
+            with open("esp32.conf", "r") as f:
+                saved_ip = f.read().strip()
+                if saved_ip:
+                    SYSTEM_STATE["esp32_ip"] = saved_ip
+                    print(f"✅ Restored ESP32 IP from config: {saved_ip}")
+        except Exception as e:
+            print(f"Could not read config file: {e}")
     # 1. Start HTTP Server for ESP32 (Background Thread)
     t = threading.Thread(target=run_server, daemon=True)
     t.start()
