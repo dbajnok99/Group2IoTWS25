@@ -62,7 +62,7 @@ async def list_tools() -> list[types.Tool]:
                 "properties": {
                     "device_id": {"type": "string"},
                     "actuator": {"type": "string"},
-                    "value": {"type": "boolean"},
+                    "value": {"type": "string", "enum": ["ON", "OFF"]},
                 },
                 "required": ["device_id", "actuator", "value"],
             },

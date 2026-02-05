@@ -66,7 +66,7 @@ def set_esp32_led(turn_on):
         print(f"Still no IP. Looked in: {CONF_PATH}")
         return
 
-    val = "1" if turn_on else "0"
+    val = "1" if turn_on == "ON" else "0"
     url = f"http://{SYSTEM_STATE['esp32_ip']}/set?val={val}"
     
     try:

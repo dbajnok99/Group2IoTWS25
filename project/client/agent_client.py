@@ -171,7 +171,7 @@ def main():
     HARDWARE INVENTORY:
     1. ESP32: 
        - Sensor: 'dht11_temp' (Temperature)
-       - Actuator: 'LED' (Values: True for ON, False for OFF)
+       - Actuator: 'LED' (Values: 'ON' or 'OFF')
     2. Thingy:53:
        - Sensors: 'Temperature', 'Humidity'
 
