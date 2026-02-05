@@ -80,13 +80,20 @@ def mcp_call_tool(name: str, args: dict) -> str:
         "method": "tools/call",
         "params": {"name": name, "arguments": args},
     }
+
     res = mcp_call(payload)
-    
-    # Ensure this part doesn't crash on an empty result list
-    if "result" in res and "content" in res["result"]:
-        content = res["result"]["content"]
-        return "\n".join([c.get("text", "") for c in content if c.get("type") == "text"]).strip()
-    return "Tool executed successfully"
+
+    # result.content is a list of content items
+
+    content = res["result"]["content"]
+
+    texts = []
+
+    for c in content:
+        if c.get("type") == "text":
+            texts.append(c.get("text", ""))
+
+    return "\n".join(texts).strip()
 
 
 def process_message(user_input, client, openai_tools, available_tool_names, system_message):
@@ -113,21 +120,34 @@ def process_message(user_input, client, openai_tools, available_tool_names, syst
 
         if getattr(msg, "tool_calls", None):
             print("Agent: Using tool(s)...")
+            all_tools_available = True
             for tc in msg.tool_calls:
                 fn = tc.function.name
-                args_raw = tc.function.arguments or "{}"
-                args = json.loads(args_raw)
+                if fn not in available_tool_names:
+                    print(f"Agent: I don't have the capability to use the '{fn}' tool.")
+                    all_tools_available = False
+                    break
+            
+            if not all_tools_available:
+                break
+
+            for tc in msg.tool_calls:
+                fn = tc.function.name
+                args = json.loads(tc.function.arguments or "{}")
 
                 print(f"  - Calling tool: {fn} with arguments: {args}")
-                
-                # Execute the call regardless of whether the values are True or False
                 tool_output = mcp_call_tool(fn, args)
 
-                messages.append({
-                    "role": "tool",
-                    "tool_call_id": tc.id,
-                    "content": tool_output,
-                })
+                messages.append(
+                    {
+                        "role": "tool",
+                        "tool_call_id": tc.id,
+                        "content": tool_output,
+                    }
+                )
+        else:
+            print(f"Agent: {msg.content}")
+            break
 
 
 def main():
