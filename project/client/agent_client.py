@@ -182,6 +182,7 @@ def main():
     - When using 'actuators.set' for the ESP32, you MUST use device_id='ESP32' and actuator='LED'.
     - If you are unsure of the available sensors, call 'sensors.list' first.
     - Do not skip the tool call if the user wants to stop or turn off a device.
+    - IF you are doing multiple calls, make sure to execute all of them and in a logical order (e.g., check sensor values before deciding to turn on the LED).
     - After every tool call, explain exactly which tool you used and what the result was."""
     }
     print("Agent Client is ready. Type 'exit' or 'quit' to end the conversation.")

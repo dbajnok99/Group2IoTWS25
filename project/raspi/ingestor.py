@@ -51,11 +51,7 @@ def save_reading(device, sensor, value):
     except Exception as e:
         print(f"DB Error: {e}")
 
-# --- OPTIONAL CONTROL FUNCTION ---
-# This is NOT called automatically. It is here only because you said
-# the LED is actuated over HTTP, so you have the capability if needed.
 def set_esp32_led(turn_on):
-    # Check the absolute path instead of a relative string
     if not SYSTEM_STATE["esp32_ip"]:
         if os.path.exists(CONF_PATH):
             with open(CONF_PATH, "r") as f:
@@ -71,10 +67,10 @@ def set_esp32_led(turn_on):
     
     try:
         requests.get(url, timeout=1)
-        print(f"Command Sent to {SYSTEM_STATE['esp32_ip']}: LED {'ON' if turn_on else 'OFF'}")
+        print(f"Command Sent to {SYSTEM_STATE['esp32_ip']}: LED {'ON' if turn_on == "ON" else 'OFF'}")
     except Exception as e:
         print(f"HTTP Error: {e}")
-# --- HTTP SERVER (Receives ESP32 Data) ---
+
 app = Flask(__name__)
 
 @app.route('/ingest', methods=['POST'])
