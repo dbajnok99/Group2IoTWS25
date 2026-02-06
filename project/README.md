@@ -38,7 +38,8 @@ pip install -r requirements.txt
 This script runs the HTTP server for the ESP32 and the BLE scanner for the Thingy:53.
 
 ```bash
-python raspi/ingestor.py
+cd raspi/
+python ingestor.py
 
 ```
 
